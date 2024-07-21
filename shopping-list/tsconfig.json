@@ -2,7 +2,7 @@
   "compilerOptions": {
     /* Base Options */
     "target": "ES2022",
-    "module": "ES2022",
+    "module": "esnext",
     "lib": [
       "dom",
       "dom.iterable",
@@ -17,7 +17,6 @@
     "isolatedModules": true,
     "noEmit": true,
     "noImplicitAny": false,
-   
     /* Strictness */
     "strict": false,
     "noUncheckedIndexedAccess": true,

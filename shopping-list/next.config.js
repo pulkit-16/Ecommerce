@@ -24,6 +24,15 @@ const config = {
     defaultLocale: "en",
   },
   transpilePackages: ["geist"],
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/login',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default config;
