@@ -8,7 +8,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
- 
+  const[showPassword,setShowPassword] = useState(false);
 
   const router = useRouter();
   const loginMutation = api.user.login.useMutation({
@@ -22,7 +22,14 @@ const Login = () => {
     },
     onError: (error) => {
       setSuccessMessage("");
-      setErrorMessage(`Login error: ${error.message}`);
+      if (error.message === "Please verify your email to log in") {
+        setErrorMessage("You need to verify your email before logging in.");
+        setTimeout(() => {
+          router.push(`/register?email=${email}&step=2`);
+        }, 2000);
+      } else {
+        setErrorMessage(`Login error: ${error.message}`);
+      }
     }
   });
 
@@ -37,6 +44,9 @@ const Login = () => {
   };
 
 
+  const togglePasswordVisibility = () => {
+    setShowPassword((prevShowPassword) => !prevShowPassword);
+  };
 
 
 
@@ -77,22 +87,35 @@ const Login = () => {
               <label htmlFor="password" className="sr-only">
                 Password
               </label>
+              <div className="relative">
               <input
                 id="password"
                 name="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border
+                 border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none
+                  focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="absolute inset-y-0 right-0 px-3 py-2 text-sm text-gray-600"
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+               </div> 
             </div>
             <div className="py-6">
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-8 border border-transparent text-sm font-medium rounded-md text-white bg-black hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className=" w-full flex justify-center py-2 px-8 border border-transparent
+               text-sm font-medium rounded-md text-white bg-black hover:bg-indigo-700 
+               focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Login
             </button>
@@ -115,8 +138,6 @@ const Login = () => {
         </div>
 
 
-
-       
       </div>
     </div>
   );

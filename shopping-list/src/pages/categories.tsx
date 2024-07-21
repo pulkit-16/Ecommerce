@@ -1,7 +1,10 @@
 import { api } from '~/utils/api';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 
 const Categories = () => {
+
+  const router = useRouter();
   const [page, setPage] = useState(1);
   const perPage = 6;
 
@@ -94,13 +97,37 @@ const Categories = () => {
     return paginationItems;
   };
 
+
+
+  const handleLogout =  (): void => {
+    // Remove token from cookies and local storage
+    document.cookie = 'token=; path=/;';
+    localStorage.removeItem('token');
+    router.push('/login'); // Redirect to the login page
+  };
+
   return (
-    <div className="flex flex-col py-10 items-center justify-center">
+
+  <>
+          <div className='flex  justify-end'>
+          <button
+            title='Logout'
+            onClick={handleLogout}
+          >
+            <i className="fa-solid fa-arrow-right-from-bracket px-3"></i>
+            
+            
+          </button>
+          </div>
+        
+    <div className="flex  py-10 items-center justify-center">
+     
       <div className="border-2 p-8 rounded-lg h-4/6 w-100 py-10">
         <div>
           <h2 className="text-center text-2xl font-bold text-gray-900">
             Please mark your interest!
           </h2>
+          
           <p className="mt-4 text-center font-bold text-sm text-black">
             we will keep you notified
           </p>
@@ -126,6 +153,7 @@ const Categories = () => {
         <div className="flex mt-10">{renderPagination()}</div>
       </div>
     </div>
+    </>
   );
 };
 

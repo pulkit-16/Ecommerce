@@ -16,35 +16,78 @@ export const userRouter = createTRPCRouter({
       password: z.string().min(6),
     }))
     .mutation(async ({ input, ctx }) => {
-      const hashedPassword = await hash(input.password, 10);
       const otp = generateOTP();
-
-      const user = await ctx.db.user.create({
-        data: {
-          name: input.name,
-          email: input.email,
-          password: hashedPassword,
-          otp, // Store the OTP in the user record
-        },
-      });
 
       // Send OTP via email
       const transporter = nodemailer.createTransport({
         service: 'Gmail',
         auth: {
-          user: process.env.EMAIL_USER, // Use your email credentials
+          user: process.env.EMAIL_USER,
           pass: process.env.EMAIL_PASS,
         },
       });
 
       await transporter.sendMail({
-        from: process.env.EMAIL_USER, // The email you use to send emails
-        to: input.email, // The user's email
+        from: process.env.EMAIL_USER,
+        to: input.email,
         subject: 'Verify Your Email',
         text: `Your OTP is: ${otp}`,
       });
 
-      return user;
+      // Store OTP and other user details temporarily in the User model
+      await ctx.db.user.create({
+        data: {
+          name: input.name,
+          email: input.email,
+          password: await hash(input.password, 10),
+          otp: otp,
+          otpAttempts: 0,
+          verified: false,
+        },
+      });
+
+      return { message: 'OTP sent to your email' };
+    }),
+
+  verifyOtpAndCreateUser: publicProcedure
+    .input(z.object({
+      email: z.string().email(),
+      otp: z.string().length(8),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const user = await ctx.db.user.findUnique({
+        where: { email: input.email },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      if (user.otpAttempts >= 2 ) {
+     
+        await ctx.db.user.delete({
+          where: { email: input.email },
+        });
+        throw new Error('Too many invalid attempts. Please try to create an account again.');
+      }
+
+      if (user.otp !== input.otp) {
+        // Increment attempts on invalid OTP
+        await ctx.db.user.update({
+          where: { email: input.email },
+          data: { otpAttempts: user.otpAttempts + 1 },
+        });
+        const attemptsLeft = 2 - user.otpAttempts;
+        throw new Error(`Invalid OTP. You have ${attemptsLeft} attempts left.`);
+      }
+
+      // Clear OTP and attempts after successful verification
+      await ctx.db.user.update({
+        where: { email: input.email },
+        data: { otp: null, otpAttempts: 0, verified: true },
+      });
+
+      return { message: "Email verified successfully" };
     }),
 
   login: publicProcedure
@@ -59,6 +102,9 @@ export const userRouter = createTRPCRouter({
       if (!user) {
         throw new Error("Invalid email or password");
       }
+      if (!user.verified) {
+        throw new Error("Please verify your email to log in");
+      }
       const isValid = await compare(input.password, user.password);
       if (!isValid) {
         throw new Error("Invalid email or password");
@@ -72,27 +118,5 @@ export const userRouter = createTRPCRouter({
       return { token, message: "Login successful" };
     }),
 
-  verifyOtp: publicProcedure
-    .input(z.object({
-      email: z.string().email(),
-      otp: z.string().length(8),
-    }))
-    .mutation(async ({ input, ctx }) => {
-      const user = await ctx.db.user.findUnique({
-        where: { email: input.email },
-      });
-      if (!user) {
-        throw new Error("User not found");
-      }
-      if (user.otp !== input.otp) {
-        throw new Error("Invalid OTP");
-      }
-
-      await ctx.db.user.update({
-        where: { email: input.email },
-        data: { otp: null }, // Clear OTP after successful verification
-      });
-
-      return { message: "Email verified successfully" };
-    }),
+ 
 });

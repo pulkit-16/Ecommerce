@@ -1,14 +1,19 @@
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import { api } from '~/utils/api';
 
-const Verify = () => {
-  const router = useRouter();
+interface OtpVerificationProps {
+  email: string;
+  onVerifyOtp: (otp: string) => void;
+  message: string;
+  setMessage: (message: string) => void;
+}
+
+const OtpVerification: React.FC<OtpVerificationProps> = ({ email, onVerifyOtp, message, setMessage }) => {
   const [otp, setOtp] = useState(Array(8).fill(''));
-  const [email, setEmail] = useState('');
   const [maskedEmail, setMaskedEmail] = useState('');
-  const [message, setMessage] = useState('');
-  const verifyOtp = api.user.verifyOtp.useMutation();
+
+  useEffect(() => {
+    setMaskedEmail(maskEmail(email));
+  }, [email]);
 
   const maskEmail = (email: string): string => {
     const [localPart, domainPart] = email.split('@');
@@ -19,26 +24,7 @@ const Verify = () => {
     return maskedLocalPart + '@' + domainPart;
   };
 
-
-  useEffect(() => {
-    const emailParam = router.query.email;
-    if (typeof emailParam === 'string') {
-      setEmail(emailParam);
-      setMaskedEmail(maskEmail(emailParam));
-    } else if (Array.isArray(emailParam)) {
-      const firstEmail = emailParam[0] || ''; // Use the first element or default to an empty string
-      setEmail(firstEmail);
-      setMaskedEmail(maskEmail(firstEmail));
-    } else {
-      setEmail(''); // Default to an empty string if emailParam is undefined
-      setMaskedEmail('');
-    }
-  }, [router.query.email]);
-
-
-
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const value = e.target.value;
     if (/^\d$/.test(value)) {
       const newOtp = [...otp];
@@ -49,7 +35,8 @@ const Verify = () => {
       }
     }
   };
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+
+  const handleOtpKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
     if (e.key === 'Backspace') {
       const newOtp = [...otp];
       newOtp[index] = '';
@@ -64,30 +51,19 @@ const Verify = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      await verifyOtp.mutateAsync({ email, otp: otp.join('') });
-      setMessage('Email verified successfully');
-      setTimeout(() => {
-        router.push('/login');
-      }, 2000);
-    } catch (error) {
-      setMessage('Invalid OTP. Please try again.');
-      setOtp(Array(8).fill(''))
-    }
+    onVerifyOtp(otp.join(''));
   };
 
   return (
-    <div className="flex  items-center justify-center min-h-screen  ">
-      <div className="box-border border-2    rounded-lg p-10 w-full max-w-md">
+    <div className="flex items-center justify-center min-h-28">
+      <div className="box-border border-2 rounded-lg p-10 w-full max-w-md">
         <h1 className="text-3xl font-bold text-center mb-4">Verify your email</h1>
         <p className="text-center text-gray-600 mb-8">Enter the 8 digit code you have received on {maskedEmail}</p>
-        <form onSubmit={handleSubmit} className="space-y-1 ">
-        
+        <form onSubmit={handleSubmit} className="space-y-1">
           <span>Code</span>
           <div className="flex justify-center space-x-2 pb-12">
-           
             {otp.map((digit, index) => (
               <input
                 key={index}
@@ -95,8 +71,8 @@ const Verify = () => {
                 type="text"
                 maxLength={1}
                 value={digit}
-                onChange={(e) => handleChange(e, index)}
-                onKeyDown={(e) => handleKeyDown(e, index)}
+                onChange={(e) => handleOtpChange(e, index)}
+                onKeyDown={(e) => handleOtpKeyDown(e, index)}
                 className="w-9 h-9 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             ))}
@@ -114,4 +90,4 @@ const Verify = () => {
   );
 };
 
-export default Verify;
+export default OtpVerification;
