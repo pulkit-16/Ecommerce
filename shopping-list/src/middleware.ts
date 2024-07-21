@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
-import { verifyAuth } from './lib/auth';
+import { UserJwtPayload, verifyAuth } from './lib/auth';
 
 export async function middleware(request: NextRequest) {
   const token = request.cookies.get('token')?.value; // Access the token from cookies
   
-  let verifiedToken = null;
+  let verifiedToken : UserJwtPayload |null = null;
   if (token) {
     try {
       verifiedToken = await verifyAuth(token);

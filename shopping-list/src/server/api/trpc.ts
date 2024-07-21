@@ -10,7 +10,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import superjson from "superjson";
 import { ZodError } from "zod";
-import { verifyAuth } from "~/lib/auth";
+import { UserJwtPayload, verifyAuth } from "~/lib/auth";
 
 import { db } from "~/server/db";
 
@@ -26,7 +26,7 @@ const createInnerTRPCContext = (_opts: CreateContextOptions) => {
 export const createTRPCContext = async (_opts: CreateNextContextOptions) => {
   const { req,res } = _opts;
   const token = req.cookies.token || null;
-  let user = null;
+  let user : UserJwtPayload|null=null;
 
   if (token) {
     try {

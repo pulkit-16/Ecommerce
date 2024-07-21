@@ -67,4 +67,10 @@ export const categoryRouter = createTRPCRouter({
 
     return categories;
   }),
+
+  
+  logout: protectedProcedure.mutation(async ({ ctx }) => {
+    ctx.res.setHeader('Set-Cookie', 'token=; path=/; ');
+    return { message: 'Logout successful' };
+  }),
 });

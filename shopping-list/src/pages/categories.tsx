@@ -8,19 +8,20 @@ const Categories = () => {
   const [page, setPage] = useState(1);
   const perPage = 6;
 
-  // Fetch paginated categories
+ 
   const { data, isLoading } = api.category.getPaginatedCategories.useQuery({
     page,
     perPage,
   });
 
-  // Fetch user selected categories
+ 
   const { data: userCategories, isLoading: isLoadingUserCategories } = api.category.getUserCategories.useQuery();
 
-  // Mutation to mark a category as selected
+ 
   const markCategory = api.category.markCategory.useMutation();
+  const logoutMutation = api.category.logout.useMutation();
 
-  // State to hold selected category IDs
+ 
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
 
   useEffect(() => {
@@ -98,12 +99,18 @@ const Categories = () => {
   };
 
 
+ 
 
-  const handleLogout =  (): void => {
-    // Remove token from cookies and local storage
-    document.cookie = 'token=; path=/;';
-    localStorage.removeItem('token');
-    router.push('/login'); // Redirect to the login page
+  const handleLogout = async (): Promise<void> => {
+    try {
+      await logoutMutation.mutateAsync();
+    } catch (error) {
+      console.error('Error logging out', error);
+    } finally {
+      document.cookie = 'token=; path=/;  Secure; SameSite=Strict';
+      localStorage.removeItem('token');
+      router.push('/login');
+    }
   };
 
   return (

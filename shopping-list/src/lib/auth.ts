@@ -1,6 +1,6 @@
 import { jwtVerify } from 'jose';
 
-interface UserJwtPayload {
+export interface UserJwtPayload {
   id: number;
  
   iat: number;
