@@ -15,8 +15,8 @@ const Login = () => {
     onSuccess: (data) => {
       setSuccessMessage("Login successful!");
       setErrorMessage("");
-      // Optionally, you can handle the token, e.g., save it in local storage
-      document.cookie = `token=${data.token}; path=/`; // Set token in cookies
+     
+      document.cookie = `token=${data.token}; path=/`; 
       localStorage.setItem("token", data.token);
       router.push("/categories");
     },

@@ -5,7 +5,7 @@ import { sign } from "jsonwebtoken";
 import nodemailer from 'nodemailer';
 
 const generateOTP = () => {
-  return Math.floor(10000000 + Math.random() * 90000000).toString(); // 8-digit OTP
+  return Math.floor(10000000 + Math.random() * 90000000).toString(); 
 };
 
 export const userRouter = createTRPCRouter({
@@ -34,7 +34,7 @@ export const userRouter = createTRPCRouter({
         text: `Your OTP is: ${otp}`,
       });
 
-      // Store OTP and other user details temporarily in the User model
+   
       await ctx.db.user.create({
         data: {
           name: input.name,
@@ -72,7 +72,7 @@ export const userRouter = createTRPCRouter({
       }
 
       if (user.otp !== input.otp) {
-        // Increment attempts on invalid OTP
+      
         await ctx.db.user.update({
           where: { email: input.email },
           data: { otpAttempts: user.otpAttempts + 1 },
@@ -81,7 +81,6 @@ export const userRouter = createTRPCRouter({
         throw new Error(`Invalid OTP. You have ${attemptsLeft} attempts left.`);
       }
 
-      // Clear OTP and attempts after successful verification
       await ctx.db.user.update({
         where: { email: input.email },
         data: { otp: null, otpAttempts: 0, verified: true },

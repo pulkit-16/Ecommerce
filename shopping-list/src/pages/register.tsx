@@ -8,7 +8,7 @@ const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [step, setStep] = useState(1); // Step 1: Enter details, Step 2: Verify OTP
+  const [step, setStep] = useState(1); 
   const [message, setMessage] = useState('');
   
 

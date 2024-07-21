@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server';
 import { UserJwtPayload, verifyAuth } from './lib/auth';
 
 export async function middleware(request: NextRequest) {
-  const token = request.cookies.get('token')?.value; // Access the token from cookies
+  const token = request.cookies.get('token')?.value;
   
   let verifiedToken : UserJwtPayload |null = null;
   if (token) {
@@ -46,5 +46,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/categories', '/login', '/register', '/verifyOtp'], // Apply middleware to these paths
+  matcher: ['/categories', '/login', '/register' ],
 };
